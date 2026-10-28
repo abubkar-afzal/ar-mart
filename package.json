@@ -1,0 +1,12 @@
+{
+  "name": "ar-mart",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:api": "npm run dev -w @armart/api",
+    "dev:web": "npm run dev -w @armart/web",
+    "seed": "npm run seed -w @armart/api",
+    "typecheck": "npm run typecheck -w @armart/shared && npm run typecheck -w @armart/api && npm run typecheck -w @armart/web"
+  }
+}
