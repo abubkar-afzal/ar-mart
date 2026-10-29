@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Request, Response, NextFunction } from 'express';
-import { env } from '../env.js';
+import { env } from '../env.ts';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

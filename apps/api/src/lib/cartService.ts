@@ -1,8 +1,8 @@
 import { Types } from 'mongoose';
 import type { Cart as CartDTO, CartItem } from '@armart/shared';
-import { Cart } from '../models/Cart.js';
-import { Product } from '../models/Product.js';
-import { ApiError } from '../middleware/errors.js';
+import { Cart } from '../models/Cart.ts';
+import { Product } from '../models/Product.ts';
+import { ApiError } from '../middleware/errors.ts';
 
 export async function getCart(ownerKey: string): Promise<CartDTO> {
   const cart = await Cart.findOne({ ownerKey }).lean();
@@ -100,7 +100,12 @@ export async function updateItem(ownerKey: string, productId: string, quantity: 
 export async function removeItem(ownerKey: string, productId: string): Promise<CartDTO> {
   const cart = await Cart.findOne({ ownerKey });
   if (!cart) return getCart(ownerKey);
-  cart.items = cart.items.filter((i) => String(i.productId) !== productId);
+
+  // Mutate the Mongoose DocumentArray in place — reassigning a plain array
+  // would break DocumentArray typing (and Mongoose's internal tracking).
+  for (let i = cart.items.length - 1; i >= 0; i--) {
+    if (String(cart.items[i]!.productId) === productId) cart.items.splice(i, 1);
+  }
   await cart.save();
   return getCart(ownerKey);
 }

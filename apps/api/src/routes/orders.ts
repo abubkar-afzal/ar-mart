@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { CreateOrderSchema } from '@armart/shared';
-import { asyncHandler } from '../middleware/errors.js';
-import { createOrderFromCart, getOrder } from '../lib/orderService.js';
+import { asyncHandler, ApiError } from '../middleware/errors.ts';
+import { createOrderFromCart, getOrder } from '../lib/orderService.ts';
 
 export const ordersRouter = Router();
 
@@ -17,6 +17,8 @@ ordersRouter.post(
 ordersRouter.get(
   '/:id',
   asyncHandler(async (req, res) => {
-    res.json(await getOrder(req.ownerKey, req.params.id));
+    const id = req.params.id;
+    if (!id) throw new ApiError(400, 'invalid_request', 'Missing order id');
+    res.json(await getOrder(req.ownerKey, id));
   }),
 );
