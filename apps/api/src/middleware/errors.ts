@@ -2,8 +2,16 @@ import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
 export class ApiError extends Error {
-  constructor(public status: number, public code: string, message: string, public details?: unknown) {
+  status: number;
+  code: string;
+  details?: unknown;
+
+  constructor(status: number, code: string, message: string, details?: unknown) {
     super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+    this.details = details;
   }
 }
 
@@ -13,7 +21,9 @@ export function notFound(_req: Request, res: Response) {
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
   if (err instanceof ApiError) {
-    return res.status(err.status).json({ error: { code: err.code, message: err.message, details: err.details } });
+    return res
+      .status(err.status)
+      .json({ error: { code: err.code, message: err.message, details: err.details } });
   }
   if (err instanceof ZodError) {
     return res

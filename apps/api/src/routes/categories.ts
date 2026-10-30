@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { Category } from '../models/Category.js';
-import { asyncHandler } from '../middleware/errors.js';
+import { Category } from '../models/Category.ts';
+import { asyncHandler } from '../middleware/errors.ts';
 
 export const categoriesRouter = Router();
 

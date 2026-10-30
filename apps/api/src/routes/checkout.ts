@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { asyncHandler } from '../middleware/errors.js';
-import { getCart } from '../lib/cartService.js';
+import { asyncHandler } from '../middleware/errors.ts';
+import { getCart } from '../lib/cartService.ts';
 
 export const checkoutRouter = Router();
 

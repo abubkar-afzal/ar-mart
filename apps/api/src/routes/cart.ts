@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { AddCartItemSchema, UpdateCartItemSchema } from '@armart/shared';
-import { asyncHandler } from '../middleware/errors.js';
-import { addItem, getCart, removeItem, updateItem } from '../lib/cartService.js';
+import { asyncHandler, ApiError } from '../middleware/errors.ts';
+import { addItem, getCart, removeItem, updateItem } from '../lib/cartService.ts';
 
 export const cartRouter = Router();
 
@@ -23,14 +23,18 @@ cartRouter.post(
 cartRouter.patch(
   '/items/:productId',
   asyncHandler(async (req, res) => {
+    const productId = req.params.productId;
+    if (!productId) throw new ApiError(400, 'invalid_request', 'Missing productId');
     const body = UpdateCartItemSchema.parse(req.body);
-    res.json(await updateItem(req.ownerKey, req.params.productId, body.quantity));
+    res.json(await updateItem(req.ownerKey, productId, body.quantity));
   }),
 );
 
 cartRouter.delete(
   '/items/:productId',
   asyncHandler(async (req, res) => {
-    res.json(await removeItem(req.ownerKey, req.params.productId));
+    const productId = req.params.productId;
+    if (!productId) throw new ApiError(400, 'invalid_request', 'Missing productId');
+    res.json(await removeItem(req.ownerKey, productId));
   }),
 );

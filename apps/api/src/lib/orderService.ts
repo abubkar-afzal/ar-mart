@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import type { CreateOrderInput, Order as OrderDTO } from '@armart/shared';
-import { Product } from '../models/Product.js';
-import { Cart } from '../models/Cart.js';
-import { Order } from '../models/Order.js';
-import { nextOrderSeq } from '../models/Counter.js';
-import { ApiError } from '../middleware/errors.js';
+import { Product } from '../models/Product.ts';
+import { Cart } from '../models/Cart.ts';
+import { Order } from '../models/Order.ts';
+import { nextOrderSeq } from '../models/Counter.ts';
+import { ApiError } from '../middleware/errors.ts';
 
 function toDTO(o: any): OrderDTO {
   return {
@@ -52,7 +52,7 @@ export async function createOrderFromCart(
   const byId = new Map(products.map((p) => [String(p._id), p]));
   for (const it of cart.items) {
     const p = byId.get(String(it.productId));
-    if (!p || !p.isActive) throw new ApiError(409, 'product_unavailable', `Product is no longer available`);
+    if (!p || !p.isActive) throw new ApiError(409, 'product_unavailable', 'Product is no longer available');
     if (p.stock < it.quantity) {
       throw new ApiError(409, 'insufficient_stock', `Insufficient stock for ${p.name}`, {
         productId: String(p._id),
@@ -83,7 +83,6 @@ export async function createOrderFromCart(
   const orderNumber = await makeOrderNumber();
 
   // 5) Decrement stock + create order + clear cart
-  //    Use a transaction when available; otherwise compensating rollback.
   const tryTx = async () => {
     const session = await mongoose.startSession();
     try {
@@ -118,7 +117,8 @@ export async function createOrderFromCart(
           { session },
         );
         created = order;
-        cart.items = [];
+        // Clear the Mongoose DocumentArray in place (see cartService for rationale).
+        cart.items.splice(0, cart.items.length);
         await cart.save({ session });
       });
       return created;
@@ -154,7 +154,7 @@ export async function createOrderFromCart(
         paymentStatus: 'pending',
         status: 'confirmed',
       });
-      cart.items = [];
+      cart.items.splice(0, cart.items.length);
       await cart.save();
       return order;
     } catch (err) {
@@ -176,7 +176,7 @@ export async function createOrderFromCart(
   try {
     created = supportsTx ? await tryTx() : await tryNoTx();
   } catch (err: unknown) {
-    // Duplicate idempotency key race: return existing
+    // Duplicate idempotency key race: return existing order
     if ((err as { code?: number })?.code === 11000) {
       const dup = await Order.findOne({ idempotencyKey: input.idempotencyKey }).lean();
       if (dup) return toDTO(dup);
