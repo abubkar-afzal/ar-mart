@@ -15,6 +15,7 @@ export async function loadModel(
     // Loads from /public/models/your-file.glb
     const result = await SceneLoader.ImportMeshAsync('', '/models/', filename, scene);
     const root = result.meshes[0];
+    if (!root) throw new Error(`GLB ${filename} contained no meshes`);
     root.checkCollisions = true;
     root.isPickable = true;
     return root;

@@ -1,14 +1,19 @@
-node_modules
-.next
-dist
-build
-*.env
-*.env.example
-*.env.local
-*.log
-.DS_Store
-# Next.js build output and cache
+__pycache__/
+*.pyc
+node_modules/
+
+# build artifacts
 .next/
 out/
-build/
 dist/
+build/
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env.local
+.env.*.local
+
+# os noise
+.DS_Store
+Thumbs.db
