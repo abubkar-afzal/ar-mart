@@ -143,6 +143,19 @@ async function run() {
   }
   console.log(`[seed] products upserted: ${allProducts.length}`);
 
+  // Attach the Blender-authored GLB mapping (SKU -> models/products/*.glb) so
+  // the API can return modelUrl and the 3D mall shows real product meshes.
+  const { PRODUCT_MODEL_BY_SKU } = await import('../lib/productModels.ts');
+  let mapped = 0;
+  for (const [sku, assetPath] of Object.entries(PRODUCT_MODEL_BY_SKU)) {
+    const r = await Product.updateOne({ sku }, { $set: { 'model3d.assetId': assetPath } });
+    if (r.matchedCount > 0) mapped++;
+  }
+  console.log(`[seed] model3d mappings applied: ${mapped}/${Object.keys(PRODUCT_MODEL_BY_SKU).length}`);
+
+  const total = await Product.countDocuments();
+  console.log(`[seed] total products in DB (${env.mongoUri.replace(/\/\/[^@]*@/, '//***@')}): ${total}`);
+
   await mongoose.disconnect();
   console.log('[seed] done');
 }

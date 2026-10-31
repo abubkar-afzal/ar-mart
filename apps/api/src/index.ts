@@ -30,8 +30,41 @@ async function main() {
   app.use(notFound);
   app.use(errorHandler);
 
-  app.listen(env.port, () => {
+  const server = app.listen(env.port, () => {
     console.log(`[api] listening on http://localhost:${env.port}`);
+    if (env.nodeEnv !== 'development') return;
+    // Friendly CORS hint: verify the Express CORS middleware actually emits
+    // Access-Control-Allow-Origin for the configured web origins.
+    const port = (server.address() as { port: number } | null)?.port ?? env.port;
+    const origin = env.corsOrigins[0] ?? 'http://localhost:3000';
+    fetch(`http://localhost:${port}/api/health`, { headers: { Origin: origin } })
+      .then((r) => r.headers.get('access-control-allow-origin'))
+      .then((allow) => {
+        console.log(
+          `[api] CORS check: origin "${origin}" -> ` +
+            (allow ? `allowed (${allow})` : 'BLOCKED by CORS_ORIGINS'),
+        );
+        if (!allow) {
+          console.log(
+            '[api] fix: add your web origin to CORS_ORIGINS in the root .env ' +
+              '(comma-separated), then restart the API.',
+          );
+        }
+      })
+      .catch(() => undefined);
+
+    // Warn if the database has no products yet (the web storefront will show
+    // "Products unavailable" until you run npm run seed).
+    import('./models/Product.ts')
+      .then(({ Product }) => Product.estimatedDocumentCount())
+      .then((count: number) => {
+        if (count === 0) {
+          console.log('[api] WARNING: 0 products in this database. Run: npm run seed');
+        } else {
+          console.log(`[api] products in database: ${count}`);
+        }
+      })
+      .catch(() => undefined);
   });
 }
 

@@ -106,7 +106,9 @@ productsRouter.get(
       isFeatured: p.isFeatured,
       isOnSale: p.isOnSale,
       tags: p.tags,
-      model3d: p.model3d ?? null,
+      // assetId wins over the SKU map inside resolveModelUrl, so strip it here
+      // to guarantee every product (seeded or admin-created) gets its modelUrl.
+      model3d: null,
       modelUrl: resolveModelUrl(p),
       createdAt: new Date(p.createdAt as any).toISOString(),
       updatedAt: new Date(p.updatedAt as any).toISOString(),
