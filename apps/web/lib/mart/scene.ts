@@ -10,6 +10,7 @@ import {
   Mesh,
   MeshBuilder,
   Scene,
+  StandardMaterial,
   Vector3,
 } from '@babylonjs/core';
 import '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
@@ -135,7 +136,7 @@ export function createMartScene(
         const lightMesh = MeshBuilder.CreateBox(`light_${floorIndex}_${x}_${z}`, { width: 1, height: 0.1, depth: 3 }, scene);
         lightMesh.position = new Vector3(x, yBase + FLOOR_HEIGHT - 0.6, z);
         lightMesh.material = mat(scene, `lightMat_${floorIndex}_${x}_${z}`, [1, 1, 0.9]);
-        lightMesh.material.emissiveColor = new Color3(1, 1, 0.8);
+        (lightMesh.material as StandardMaterial).emissiveColor = new Color3(1, 1, 0.8);
       }
     }
 
@@ -372,8 +373,8 @@ function createProductMesh(scene: Scene, p: Product, pos: Vector3, color: [numbe
   fallbackBox.checkCollisions = true;
   collection.push(fallbackBox);
 
-  // Try to upgrade to GLB
-  loadModel(scene, filename, dims, color).then((glb) => {
+  // Try to upgrade to GLB (loadModel expects {w,h,d})
+  loadModel(scene, filename, { w: dims.width, h: dims.height, d: dims.depth }, color).then((glb) => {
     if (!glb) return;
     glb.position = pos;
     glb.metadata = fallbackBox.metadata;

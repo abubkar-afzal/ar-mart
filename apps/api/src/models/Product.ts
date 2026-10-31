@@ -1,4 +1,5 @@
 import { Schema, model, type InferSchemaType } from 'mongoose';
+import { PRODUCT_MODEL_BY_SKU } from '../lib/productModels.ts';
 
 const productSchema = new Schema(
   {
@@ -37,3 +38,10 @@ productSchema.index({ department: 1, isActive: 1 });
 
 export type ProductDoc = InferSchemaType<typeof productSchema> & { _id: string };
 export const Product = model('Product', productSchema);
+/**
+ * Resolve the GLB display asset for a product: explicit model3d.assetId wins,
+ * otherwise the Blender-authored catalogue mapping by SKU (see lib/productModels.ts).
+ */
+export function resolveModelUrl(p: { sku?: string; model3d?: { assetId?: string } | null }): string | null {
+  return p.model3d?.assetId ?? PRODUCT_MODEL_BY_SKU[p.sku ?? ''] ?? null;
+}
